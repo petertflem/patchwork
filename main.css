@@ -1,0 +1,12 @@
+body {
+  margin: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.image-element {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: absolute;
+}
