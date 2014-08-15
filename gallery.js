@@ -22,7 +22,6 @@
     var rowspan = dimensions[elementDimensions.type].row;
     var containingDiv = document.createElement('div');
 
-
     containingDiv.style.top = elementDimensions.y + 'px';
     containingDiv.style.left = elementDimensions.x + 'px';
     containingDiv.style.width = (Map.getColumnWidth() * colspan) + 'px';

@@ -1,6 +1,5 @@
-(function (_this) {
+(function (_this, Toolbelt) {
   var map = [];
-  var queue = [];
   var singleColumnWidth = 0;
   var maxNumberOfColumns = 0;
   
@@ -12,7 +11,7 @@
     maxRowSpan: 2,
     rows: 10
   };
-  
+
   _this.initialize = function(newOptions) {
     // Merge options, overwrite default ones
     for (var attrname in newOptions)
@@ -31,57 +30,54 @@
   
   _this.generateElements = function(numberOfElements) {
     var elementsAdded = 0;
+    var queue = [];
     
     for (var i = 0; i < options.rows; i++) {
       map[i] = Array.apply(null, new Array(maxNumberOfColumns)).map(Number.prototype.valueOf, 1);
     }
     
-    // i == rows
-    for (i = 0; i < options.rows; i++) {
-      // j == columns
-      for (var j = 0; j < maxNumberOfColumns; j++) {
+    for (var row = 0; row < map.length; row++) {
+      for (var col = 0; col < map[row].length; col++) {
         if (elementsAdded === numberOfElements) {
           printMap();
           return queue;
         }
       
         // If this one is taken
-        if (map[i][j] !== 1)
+        if (map[row][col] !== 1)
           continue;
         
         elementsAdded++;
 
         // If the next one is unavailable
-        if (map[i][j + 1] !== 1) {
+        if (map[row][col + 1] !== 1) {
 
           // If it is the last row
-          if ((i + 1) === options.rows) {
+          if ((row + 1) === options.rows) {
             // Small
-            map[i][j] = '0';
+            addElementToMap(col, row, 1, 1);
             queue.push({ 
-              x: singleColumnWidth * j,
-              y: options.desiredRowHeight * i,
+              x: singleColumnWidth * col,
+              y: options.desiredRowHeight * row,
               type: 'small'
             });
           } else {
             // Isnt last row; small or standing
-            var o = ['o', 'I'];
-            var s = o[getRandomNumber(0, 2)];
+            var s = ['o', 'I'][Toolbelt.getRandomNumber(0, 2)];
 
             if (s === 'o') {
-              map[i][j] = '0';
+              addElementToMap(col, row, 1, 1);
               queue.push({ 
-                x: singleColumnWidth * j,
-                y: options.desiredRowHeight * i,
+                x: singleColumnWidth * col,
+                y: options.desiredRowHeight * row,
                 type: 'small'
               });
             }
             else {
-              map[i][j] = '0';
-              map[i + 1][j] = '0';
+              addElementToMap(col, row, 1, 2);
               queue.push({ 
-                x: singleColumnWidth * j,
-                y: options.desiredRowHeight * i,
+                x: singleColumnWidth * col,
+                y: options.desiredRowHeight * row,
                 type: 'standing'
               });
             }
@@ -92,25 +88,23 @@
         }
 
         // If it is the last row, but not the last square
-        if ((i + 1) === options.rows && (j + 1) !== maxNumberOfColumns) {
+        if ((row + 1) === options.rows && (col + 1) !== maxNumberOfColumns) {
           // Isnt last row; small or standing
-          var o = ['o', '-'];
-          var s = o[getRandomNumber(0, 2)];
+          var s = ['o', '-'][Toolbelt.getRandomNumber(0, 2)];
 
           if (s === 'o') {
-            map[i][j] = '0';
+            addElementToMap(col, row, 1, 1);
             queue.push({ 
-              x: singleColumnWidth * j,
-              y: options.desiredRowHeight * i,
+              x: singleColumnWidth * col,
+              y: options.desiredRowHeight * row,
               type: 'small'
             });
           }
           else {
-            map[i][j] = '0';
-            map[i][j + 1] = '0';
+            addElementToMap(col, row, 2, 1);
             queue.push({ 
-              x: singleColumnWidth * j,
-              y: options.desiredRowHeight * i,
+              x: singleColumnWidth * col,
+              y: options.desiredRowHeight * row,
               type: 'laying'
             });
           }
@@ -118,40 +112,34 @@
           continue;
         }
 
-        var o = ['o', '-', 'I', 'O'];
-        var s = o[getRandomNumber(0, 4)];
+        var s = ['o', '-', 'I', 'O'][Toolbelt.getRandomNumber(0, 4)];
 
         if (s === 'o') {
-          map[i][j] = '0';
+          addElementToMap(col, row, 1, 1);
           queue.push({ 
-            x: singleColumnWidth * j,
-            y: options.desiredRowHeight * i,
+            x: singleColumnWidth * col,
+            y: options.desiredRowHeight * row,
             type: 'small'
           });
         } else if (s === '-') {
-          map[i][j] = '0';
-          map[i][j + 1] = '0';
+          addElementToMap(col, row, 2, 1);
           queue.push({ 
-            x: singleColumnWidth * j,
-            y: options.desiredRowHeight * i,
+            x: singleColumnWidth * col,
+            y: options.desiredRowHeight * row,
             type: 'laying'
           });
         } else if (s === 'I') {
-          map[i][j] = '0';
-          map[i + 1][j] = '0';
+          addElementToMap(col, row, 1, 2);
           queue.push({ 
-            x: singleColumnWidth * j,
-            y: options.desiredRowHeight * i,
+            x: singleColumnWidth * col,
+            y: options.desiredRowHeight * row,
             type: 'standing'
           });
         } else {
-          map[i][j] = '0';
-          map[i][j + 1] = '0';
-          map[i + 1][j] = '0';
-          map[i + 1][j + 1] = '0';
+          addElementToMap(col, row, 2, 2);
           queue.push({ 
-            x: singleColumnWidth * j,
-            y: options.desiredRowHeight * i,
+            x: singleColumnWidth * col,
+            y: options.desiredRowHeight * row,
             type: 'large'
           });
         }
@@ -191,8 +179,12 @@
     singleColumnWidth = Math.floor(adjustedColumnWidth);
   }
   
-  function getRandomNumber(min, max) {
-    return Math.floor(Math.random() * max + min);
+  function addElementToMap(x, y, width, height) {
+    for (var i = 0; i < height; i++)
+      for (var j = 0; j < width; j++)
+        map[y + i][x + j] = 0;
+    
+    printMap();
   }
   
-})(Patchwork.Map = Patchwork.Map || {});
+})(Patchwork.Map = Patchwork.Map || {}, Patchwork.Toolbelt);

@@ -7,4 +7,8 @@
     }
   }
   
+  _this.getRandomNumber = function(min, max) {
+    return Math.floor(Math.random() * max + min);
+  }
+  
 })(Patchwork.Toolbelt = Patchwork.Toolbelt || {});
