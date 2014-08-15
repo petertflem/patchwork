@@ -7,15 +7,14 @@
   var options = {
     desiredColumnWidth: 250,
     desiredRowHeight: 250,
-    maxColumnSpan: 2,
-    maxRowSpan: 2,
     rows: 10
   };
 
   _this.initialize = function(newOptions) {
     // Merge options, overwrite default ones
-    for (var attrname in newOptions)
+    for (var attrname in newOptions) {
       options[attrname] = newOptions[attrname];
+    }
     
     calculateColumnWidth();
   };
@@ -183,8 +182,6 @@
     for (var i = 0; i < height; i++)
       for (var j = 0; j < width; j++)
         map[y + i][x + j] = 0;
-    
-    printMap();
   }
   
 })(Patchwork.Map = Patchwork.Map || {}, Patchwork.Toolbelt);

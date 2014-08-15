@@ -7,9 +7,12 @@
     'large': { row: 2, col: 2 }  
   };
   
-  _this.initialize = function (data) {
+  _this.initialize = function (data, options) {
+    // If no options are passed in, make options an empty object
+    options = options || {};
+    
     Polyfills.initialize();
-    Map.initialize();
+    Map.initialize(options.map);
     createElements(data);
   };
   
@@ -65,5 +68,12 @@ Gallery.initialize(
     { src: 'http://placekitten.com/' + Math.floor(Math.random() * 1000 + 300) + '/'+ Math.floor(Math.random() * 1000 + 300) },
     { src: 'http://placekitten.com/' + Math.floor(Math.random() * 1000 + 300) + '/'+ Math.floor(Math.random() * 1000 + 300) },
     { src: 'http://placekitten.com/' + Math.floor(Math.random() * 1000 + 300) + '/'+ Math.floor(Math.random() * 1000 + 300) }
-  ]
+  ],
+  {
+    map: {
+      desiredColumnWidth: 200,
+      desiredRowHeight: 200,
+      rows: 10
+    }
+  }
 );
