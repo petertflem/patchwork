@@ -1,7 +1,5 @@
-(function (_this, Polyfills, Map) {
+(function (_this, Polyfills, Map, Toolbelt) {
   
-  var elements = [];
-  var queue = [];
   var dimensions = {
     'small': { row: 1, col: 1 },
     'standing': { row: 2, col: 1 },
@@ -12,19 +10,18 @@
   _this.initialize = function (data) {
     Polyfills.initialize();
     Map.initialize();
-    queue = Map.generateElements(data.length);
-    elements = data;
-    createImageElements();
+    createElements(data);
   };
   
-  function createImageElements() {
-    queue.forEach(createImageElement);
+  function createElements(data) {
+    Map.generateElements(data.length).forEach(Toolbelt.curry(createImageElement, data));
   }
   
-  function createImageElement(elementDimensions, i) {
+  function createImageElement(elements, elementDimensions, i) {
     var colspan = dimensions[elementDimensions.type].col;
     var rowspan = dimensions[elementDimensions.type].row;
     var containingDiv = document.createElement('div');
+
 
     containingDiv.style.top = elementDimensions.y + 'px';
     containingDiv.style.left = elementDimensions.x + 'px';
@@ -36,7 +33,7 @@
     document.body.appendChild(containingDiv);
   }
   
-})(window.Gallery = window.Gallery || {}, Patchwork.Polyfills, Patchwork.Map);
+})(window.Gallery = window.Gallery || {}, Patchwork.Polyfills, Patchwork.Map, Patchwork.Toolbelt);
 
 Gallery.initialize(
   [
