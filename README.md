@@ -1,4 +1,4 @@
 patchwork
 =========
 
-Patches your image together to form an awesome gallery!
+Patches your images together to form an awesome gallery!
