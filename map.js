@@ -51,6 +51,8 @@
         var dimension = dimensions[Toolbelt.getRandomNumber(0, dimensions.length)];
         var report = checkIfElementFits(col, row, dimension.width, dimension.height);
         
+        console.log(dimension);
+        
         if (report.fits) {
           addElementToMap(col, row, dimension.width, dimension.height);
           queue.push({ 
@@ -84,8 +86,29 @@
   };
   
   function selectNewElement(width, currRow) {
+    // [width] doesn't neccesarilly exist
+    //console.log(sortedDimensions.width);
+    console.log('selecting new...');
     var elements = sortedDimensions.width[width];
     
+    if (sortedDimensions.width.length) {
+      console.log('selecting new existing size...');
+      for (var x = 0; x < sortedDimensions.width.length; x++) {
+        if (!sortedDimensions.width[x])
+          continue;
+        
+        if (width >= x)
+          elements = sortedDimensions.width[x];
+      }
+      
+      console.log('selected  new');
+      console.log(elements);
+    }
+    
+    if (!elements) {
+      elements = [{width: 1, height: 1}];   
+    }
+      
     var remainingHeight = map.length - currRow;
     
     var el = { width: 1, height: 1 };
@@ -94,15 +117,15 @@
         el = elements[a];
     }
     
-    console.log('el; ');
-    console.log(el);
+    //console.log('el; ');
+    //console.log(el);
     
     if (el.height + currRow > map.length) {
-      console.log('returned: { width: 1, height: 1 }');
+      //console.log('returned: { width: 1, height: 1 }');
       return { width: 1, height: 1 };
     }
     else {
-      console.log('returned: ' + el.width + ' ' + el.height);
+      //console.log('returned: ' + el.width + ' ' + el.height);
       return el;
     }
   }
@@ -258,7 +281,7 @@
     
     sortedDimensions = sorted;
     
-    console.log(sortedDimensions);
+    //console.log(sortedDimensions);
   }
   
 })(Patchwork.Map = Patchwork.Map || {}, Patchwork.Toolbelt);
