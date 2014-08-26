@@ -3,20 +3,19 @@
   var singleColumnWidth = 0;
   var maxNumberOfColumns = 0;
   
-  // Default options
-  var options = {
-    desiredColumnWidth: 250,
-    desiredRowHeight: 250,
-    rows: 10
-  };
-
-  _this.initialize = function(newOptions) {
-    // Merge options, overwrite default ones
-    for (var attrname in newOptions) {
-      options[attrname] = newOptions[attrname];
-    }
+  var dimensions;
+  var options;
+  var sortedDimensions;
+  
+  _this.initialize = function(newOptions, availableDimensions) {
+    options = newOptions;
+    dimensions = availableDimensions;
     
     calculateColumnWidth();
+    
+    addRowsToMap(options.rows);
+    
+    processDimensions();
   };
   
   _this.getColumnWidth = function() {
@@ -30,124 +29,92 @@
   _this.generateElements = function(numberOfElements) {
     var elementsAdded = 0;
     var queue = [];
+    var row = 0;
+    var col = 0;
     
-    for (var i = 0; i < options.rows; i++) {
-      map[i] = Array.apply(null, new Array(maxNumberOfColumns)).map(Number.prototype.valueOf, 1);
+    if (!map[0][0]) {
+      row = map.length;
+      addRowsToMap(options.rows);
     }
     
-    for (var row = 0; row < map.length; row++) {
-      for (var col = 0; col < map[row].length; col++) {
-        if (elementsAdded === numberOfElements) {
-          printMap();
-          return queue;
-        }
+    for (; row < map.length; row++) {
+      for (; col < map[row].length; col++) {
+        if (elementsAdded === numberOfElements)
+          return { queue: queue, hasMore: false };
       
         // If this one is taken
         if (map[row][col] !== 1)
           continue;
         
         elementsAdded++;
-
-        // If the next one is unavailable
-        if (map[row][col + 1] !== 1) {
-
-          // If it is the last row
-          if ((row + 1) === options.rows) {
-            // Small
-            addElementToMap(col, row, 1, 1);
-            queue.push({ 
-              x: singleColumnWidth * col,
-              y: options.desiredRowHeight * row,
-              type: 'small'
-            });
-          } else {
-            // Isnt last row; small or standing
-            var s = ['o', 'I'][Toolbelt.getRandomNumber(0, 2)];
-
-            if (s === 'o') {
-              addElementToMap(col, row, 1, 1);
-              queue.push({ 
-                x: singleColumnWidth * col,
-                y: options.desiredRowHeight * row,
-                type: 'small'
-              });
-            }
-            else {
-              addElementToMap(col, row, 1, 2);
-              queue.push({ 
-                x: singleColumnWidth * col,
-                y: options.desiredRowHeight * row,
-                type: 'standing'
-              });
-            }
-
-          }
-
-          continue;
-        }
-
-        // If it is the last row, but not the last square
-        if ((row + 1) === options.rows && (col + 1) !== maxNumberOfColumns) {
-          // Isnt last row; small or standing
-          var s = ['o', '-'][Toolbelt.getRandomNumber(0, 2)];
-
-          if (s === 'o') {
-            addElementToMap(col, row, 1, 1);
-            queue.push({ 
-              x: singleColumnWidth * col,
-              y: options.desiredRowHeight * row,
-              type: 'small'
-            });
-          }
-          else {
-            addElementToMap(col, row, 2, 1);
-            queue.push({ 
-              x: singleColumnWidth * col,
-              y: options.desiredRowHeight * row,
-              type: 'laying'
-            });
-          }
-
-          continue;
-        }
-
-        var s = ['o', '-', 'I', 'O'][Toolbelt.getRandomNumber(0, 4)];
-
-        if (s === 'o') {
-          addElementToMap(col, row, 1, 1);
+        
+        var dimension = dimensions[Toolbelt.getRandomNumber(0, dimensions.length)];
+        var report = checkIfElementFits(col, row, dimension.width, dimension.height);
+        
+        if (report.fits) {
+          addElementToMap(col, row, dimension.width, dimension.height);
           queue.push({ 
             x: singleColumnWidth * col,
             y: options.desiredRowHeight * row,
-            type: 'small'
+            dimension: dimension
           });
-        } else if (s === '-') {
-          addElementToMap(col, row, 2, 1);
-          queue.push({ 
-            x: singleColumnWidth * col,
-            y: options.desiredRowHeight * row,
-            type: 'laying'
-          });
-        } else if (s === 'I') {
-          addElementToMap(col, row, 1, 2);
-          queue.push({ 
-            x: singleColumnWidth * col,
-            y: options.desiredRowHeight * row,
-            type: 'standing'
-          });
+          printMap();
         } else {
-          addElementToMap(col, row, 2, 2);
-          queue.push({ 
+          //console.log(report.maxWidth);
+          //printMap();
+          
+          var el = selectNewElement(report.maxWidth, row);
+          
+          addElementToMap(col, row, el.width, el.height);
+            queue.push({ 
             x: singleColumnWidth * col,
             y: options.desiredRowHeight * row,
-            type: 'large'
+            dimension: { width: el.width, height: el.height }
           });
+          printMap();
         }
+        
+        console.log('#######################');
       }
+      
+      col = 0;
     }
     
-    printMap();
-    return queue;
+    return { queue: queue, hasMore: true };
   };
+  
+  function selectNewElement(width, currRow) {
+    var elements = sortedDimensions.width[width];
+    
+    var remainingHeight = map.length - currRow;
+    
+    var el = { width: 1, height: 1 };
+    for (var a = 0; a < elements.length; a++) {
+      if (elements[a].height <= remainingHeight)
+        el = elements[a];
+    }
+    
+    console.log('el; ');
+    console.log(el);
+    
+    if (el.height + currRow > map.length) {
+      console.log('returned: { width: 1, height: 1 }');
+      return { width: 1, height: 1 };
+    }
+    else {
+      console.log('returned: ' + el.width + ' ' + el.height);
+      return el;
+    }
+  }
+  
+  function addRowsToMap(numberOfRows) {
+    var i = map.length;
+    var previousLength = map.length;
+    
+    for (; i < (numberOfRows + previousLength); i++) {
+      map[i] = Array.apply(null, new Array(maxNumberOfColumns)).map(Number.prototype.valueOf, 1);
+    }
+  }
   
   function printMap() {
     var row = 0;
@@ -178,10 +145,120 @@
     singleColumnWidth = Math.floor(adjustedColumnWidth);
   }
   
+  function checkIfElementFits(col, row, width, height) {
+    //console.log('w: ' + width + ' h: ' + height);
+    //console.log('col: ' + col + ' row: ' + row);
+    
+    var fits = true;
+    
+    // Is it to wide for the row
+    if (col + width >= map[row].length + 1) {
+      fits = false;
+    }
+    
+    // Is it to high for the board
+    if (row + height >= map.length + 1) {
+      fits = false;
+    }
+    
+    var freeSpace = [];
+    var counter = 0;
+    
+    for (var i = 0; i < height; i++) {
+      
+      // If rows are out of bounds
+      //console.log(row + i + " > " + (map.length - 1));
+      if (row + i > map.length - 1) {
+        continue;
+      }
+      
+      for (var j = 0; j < width; j++) {
+        
+        // if col is out of bounds
+        if (col + j > map[row].length - 1) {
+          continue;
+        }
+        
+        //console.log('row: ' + (row + i) + ' col: ' + (col + j));
+        console.log()
+        // Is the node already taken
+        if (map[row + i][col + j] === 0) {
+          fits = false;
+          
+          var value = freeSpace[counter];
+          
+          if (!value)
+            value = { open: false, value: 0 };
+          else 
+            value.open = false;
+          
+          freeSpace[counter] = value;
+          
+        } else {
+          var value = freeSpace[counter];
+          //console.log(value);
+          if (!value) {
+            value = { open: true, value: 0 };
+          }
+          if (value.open)
+            value.value += 1;
+          
+          freeSpace[counter] = value;
+        }
+      }
+      
+      counter++;
+    }
+    var a = freeSpace.map(function (el) {
+      return el.value;
+    });
+    //console.log(freeSpace);
+    var maxWidth = Math.min.apply(null, a);
+    
+    return { fits: fits, maxWidth: maxWidth };
+  }
+  
   function addElementToMap(x, y, width, height) {
     for (var i = 0; i < height; i++)
       for (var j = 0; j < width; j++)
         map[y + i][x + j] = 0;
+  }
+  
+  function processDimensions() {
+    /*{ width: 1, height: 1 }
+      { width: 3, height: 2 }
+      { width: 3, height: 4 }
+      { width: 5, height: 1 }
+      { width: 2, height: 6 }*/
+    
+    var sorted = {
+      width: [],
+      height: []
+    };
+    
+    dimensions.forEach(function (element) {
+      var widths = sorted.width[element.width];
+      var heights = sorted.height[element.height];
+      
+      if (!widths)
+        widths = [];
+      
+      if (!heights)
+        heights = [];
+      
+      widths.push(element);
+      heights.push(element);
+      
+      widths = widths.sort(function (a, b) { return a.height - b.height; });
+      heights = heights.sort(function (a, b) { return a.width - b.width; });
+      
+      sorted.width[element.width] = widths;
+      sorted.height[element.height] = heights;
+    });
+    
+    sortedDimensions = sorted;
+    
+    console.log(sortedDimensions);
   }
   
 })(Patchwork.Map = Patchwork.Map || {}, Patchwork.Toolbelt);
