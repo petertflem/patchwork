@@ -116,7 +116,7 @@ Patchwork.initialize(
       rows: 5
     },
     dimensions: [
-      /*{ width: 1, height: 1 },
+      { width: 1, height: 1 },
       { width: 1, height: 2 },
       { width: 1, height: 3 },
       { width: 1, height: 4 },
@@ -125,11 +125,7 @@ Patchwork.initialize(
       { width: 2, height: 2 },
       { width: 3, height: 1 },
       { width: 3, height: 2 },
-      { width: 3, height: 3 },*/
-      //{ width: 1, height: 1 },
-      { width: 1, height: 2 },
-      { width: 22, height: 21 },
-      { width: 23, height: 22 },
+      { width: 3, height: 3 },
     ]
   }
 );
